@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Valuation & Prospecting Tool</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for a clean, professional look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Use the Inter font family defined above */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Add a subtle transition for a smoother UI feel */
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Real Estate Valuation & Prospecting Tool</h1>
+            <p class="text-gray-600 mt-2">Analyze property values, prospect neighborhoods, and forecast market trends.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Left Column: Controls & Inputs -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-4">Controls</h2>
+
+                <!-- State Selection -->
+                <div class="mb-6">
+                    <label for="state-select" class="block text-sm font-medium text-gray-700 mb-2">Select a State</label>
+                    <select id="state-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="OH">Ohio</option>
+                        <!-- Other states can be added here -->
+                    </select>
+                </div>
+                
+                <!-- Property Selection -->
+                <div class="mb-6">
+                    <label for="property-select" class="block text-sm font-medium text-gray-700 mb-2">Select a Property to Analyze</label>
+                    <select id="property-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">-- Choose a property --</option>
+                    </select>
+                </div>
+                
+                <!-- Market Trend Forecasting -->
+                <div class="mb-6">
+                    <label for="market-trend" class="block text-sm font-medium text-gray-700 mb-2">Market Forecast</label>
+                    <select id="market-trend" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="stable">Stable Market</option>
+                        <option value="growing">Growing Market (+5%)</option>
+                        <option value="declining">Declining Market (-5%)</option>
+                    </select>
+                </div>
+
+                <!-- Custom Property Input (for future expansion) -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700 mt-8 mb-4 border-b pb-2">Or Value a Custom Property</h3>
+                    <p class="text-gray-500 text-sm">This is a placeholder for future functionality. For now, please select a property from the dropdown above.</p>
+                    <button class="mt-4 w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-md cursor-not-allowed" disabled>Calculate Custom</button>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Reports -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Valuation Report -->
+                <div id="valuation-report" class="bg-white p-6 rounded-lg shadow-lg hidden">
+                    <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">Valuation Report</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Property Details -->
+                        <div>
+                            <h3 id="property-address" class="text-xl font-semibold text-gray-800"></h3>
+                            <div id="property-details" class="text-gray-600 mt-2 space-y-1">
+                                <!-- Details will be injected here by JS -->
+                            </div>
+                        </div>
+                        <!-- Valuation Result -->
+                        <div class="flex flex-col items-center justify-center bg-indigo-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-indigo-800">Estimated Market Value</p>
+                            <p id="valuation-result" class="text-4xl font-bold text-indigo-600 mt-2"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Circle Prospecting Report -->
+                <div id="prospecting-report" class="bg-white p-6 rounded-lg shadow-lg hidden">
+                    <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">Circle Prospecting</h2>
+                    <p class="text-gray-600 mb-4">Nearby properties based on street name & zip code.</p>
+                    <div id="prospecting-results" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Neighbor cards will be injected here by JS -->
+                    </div>
+                </div>
+
+                 <!-- Initial State Message -->
+                <div id="initial-message" class="bg-white p-8 rounded-lg shadow-lg text-center">
+                     <h2 class="text-2xl font-bold text-gray-700 mb-4">Welcome!</h2>
+                     <p class="text-gray-600">Please select a property from the control panel on the left to begin your analysis.</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- MOCK DATABASE ---
+            // In a real application, this data would come from a database or an API.
+            // Data is now focused on Ohio.
+            const properties = [
+                {
+                    id: 1,
+                    address: "123 Main St",
+                    city: "Columbus",
+                    state: "OH",
+                    zip: "43215",
+                    sqft: 1850,
+                    beds: 3,
+                    baths: 2.5,
+                    condition: "Good",
+                    baseValue: 320000
+                },
+                {
+                    id: 2,
+                    address: "456 High St",
+                    city: "Columbus",
+                    state: "OH",
+                    zip: "43215",
+                    sqft: 2200,
+                    beds: 4,
+                    baths: 3,
+                    condition: "Excellent",
+                    baseValue: 410000
+                },
+                {
+                    id: 3,
+                    address: "789 Broad St",
+                    city: "Cleveland",
+                    state: "OH",
+                    zip: "44113",
+                    sqft: 1650,
+                    beds: 3,
+                    baths: 2,
+                    condition: "Fair",
+                    baseValue: 180000
+                },
+                {
+                    id: 4,
+                    address: "135 Main St", // A "neighbor" of property 1
+                    city: "Columbus",
+                    state: "OH",
+                    zip: "43215",
+                    sqft: 1900,
+                    beds: 3,
+                    baths: 2.5,
+                    condition: "Excellent",
+                    baseValue: 350000
+                },
+                 {
+                    id: 5,
+                    address: "99 Vine St",
+                    city: "Cincinnati",
+                    state: "OH",
+                    zip: "45202",
+                    sqft: 2500,
+                    beds: 4,
+                    baths: 3.5,
+                    condition: "Good",
+                    baseValue: 450000
+                },
+                {
+                    id: 6,
+                    address: "801 Broad St", // A "neighbor" of property 3
+                    city: "Cleveland",
+                    state: "OH",
+                    zip: "44113",
+                    sqft: 1700,
+                    beds: 3,
+                    baths: 2,
+                    condition: "Good",
+                    baseValue: 195000
+                }
+            ];
+
+            // --- ELEMENT SELECTORS ---
+            const stateSelect = document.getElementById('state-select');
+            const propertySelect = document.getElementById('property-select');
+            const marketTrendSelect = document.getElementById('market-trend');
+            
+            const initialMessage = document.getElementById('initial-message');
+            const valuationReport = document.getElementById('valuation-report');
+            const propertyAddress = document.getElementById('property-address');
+            const propertyDetails = document.getElementById('property-details');
+            const valuationResult = document.getElementById('valuation-result');
+            
+            const prospectingReport = document.getElementById('prospecting-report');
+            const prospectingResults = document.getElementById('prospecting-results');
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Populates the property selection dropdown based on the selected state.
+             * @param {string} selectedState - The abbreviation of the state (e.g., "OH").
+             */
+            function populatePropertyDropdown(selectedState) {
+                // Clear existing options (except the default)
+                propertySelect.innerHTML = '<option value="">-- Choose a property --</option>';
+
+                const filteredProperties = properties.filter(prop => prop.state === selectedState);
+
+                filteredProperties.forEach(prop => {
+                    const option = document.createElement('option');
+                    option.value = prop.id;
+                    option.textContent = `${prop.address}, ${prop.city}`;
+                    propertySelect.appendChild(option);
+                });
+            }
+
+            /**
+             * A simplified valuation algorithm.
+             * @param {object} prop - The property object.
+             * @param {string} trend - The market trend ('stable', 'growing', 'declining').
+             * @returns {number} - The calculated valuation.
+             */
+            function calculateValuation(prop, trend) {
+                let calculatedValue = prop.baseValue;
+                calculatedValue += prop.sqft * 60; // Adjusted for a different market
+
+                if (prop.condition === "Excellent") calculatedValue *= 1.1;
+                else if (prop.condition === "Fair") calculatedValue *= 0.9;
+                
+                if (trend === "growing") calculatedValue *= 1.05;
+                else if (trend === "declining") calculatedValue *= 0.95;
+                
+                return calculatedValue;
+            }
+            
+            /**
+             * Formats a number as a US dollar currency string.
+             * @param {number} value - The number to format.
+             * @returns {string} - The formatted currency string.
+             */
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(value);
+            }
+
+            /**
+             * Resets the view to the initial state.
+             */
+            function resetView() {
+                initialMessage.classList.remove('hidden');
+                valuationReport.classList.add('hidden');
+                prospectingReport.classList.add('hidden');
+            }
+
+
+            /**
+             * Displays the main analysis report for the selected property.
+             * @param {object} prop - The property object.
+             */
+            function displayAnalysis(prop) {
+                resetView();
+                initialMessage.classList.add('hidden');
+                valuationReport.classList.remove('hidden');
+                prospectingReport.classList.remove('hidden');
+
+                // 1. Display Property Details
+                propertyAddress.textContent = `${prop.address}, ${prop.city}, ${prop.zip}`;
+                propertyDetails.innerHTML = `
+                    <p><span class="font-medium">Sq. Footage:</span> ${prop.sqft.toLocaleString()} sqft</p>
+                    <p><span class="font-medium">Beds:</span> ${prop.beds}</p>
+                    <p><span class="font-medium">Baths:</span> ${prop.baths}</p>
+                    <p><span class="font-medium">Condition:</span> ${prop.condition}</p>
+                `;
+
+                // 2. Calculate and Display Valuation
+                const trend = marketTrendSelect.value;
+                const valuation = calculateValuation(prop, trend);
+                valuationResult.textContent = formatCurrency(valuation);
+
+                // 3. Find and Display Prospects
+                displayProspects(prop);
+            }
+
+            /**
+             * Finds and displays "neighboring" properties.
+             * Logic is now more robust: finds properties on the same street AND in the same zip code.
+             * @param {object} subjectProperty - The property to find neighbors for.
+             */
+            function displayProspects(subjectProperty) {
+                prospectingResults.innerHTML = '';
+                
+                const subjectStreetName = subjectProperty.address.split(' ').slice(1).join(' ');
+                
+                const prospects = properties.filter(prop => {
+                    if (prop.id === subjectProperty.id) return false;
+                    
+                    const prospectStreetName = prop.address.split(' ').slice(1).join(' ');
+                    // Check both street name AND zip code for more accurate prospecting
+                    return prospectStreetName === subjectStreetName && prop.zip === subjectProperty.zip;
+                });
+
+                if (prospects.length === 0) {
+                     prospectingResults.innerHTML = `<p class="text-gray-500 col-span-full">No other properties found on this street in our database.</p>`;
+                     return;
+                }
+
+                prospects.forEach(prospect => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-50 p-4 rounded-lg border border-gray-200';
+                    const prospectValuation = calculateValuation(prospect, marketTrendSelect.value);
+                    
+                    card.innerHTML = `
+                        <h4 class="font-bold text-gray-800">${prospect.address}</h4>
+                        <p class="text-sm text-gray-600">${prospect.sqft.toLocaleString()} sqft, ${prospect.beds} beds, ${prospect.baths} baths</p>
+                        <p class="text-lg font-semibold text-green-600 mt-2">${formatCurrency(prospectValuation)}</p>
+                    `;
+                    prospectingResults.appendChild(card);
+                });
+            }
+
+            // --- EVENT LISTENERS ---
+            
+            /**
+             * Main handler function to run when a property or market trend is selected.
+             */
+            function handleSelectionChange() {
+                 const selectedId = propertySelect.value;
+                 if (selectedId) {
+                     const selectedProperty = properties.find(p => p.id == selectedId);
+                     displayAnalysis(selectedProperty);
+                 } else {
+                    resetView();
+                 }
+            }
+
+            // When the user changes the state filter
+            stateSelect.addEventListener('change', (e) => {
+                const selectedState = e.target.value;
+                populatePropertyDropdown(selectedState);
+                resetView();
+            });
+
+            // When the user selects a different property
+            propertySelect.addEventListener('change', handleSelectionChange);
+            
+            // When the user changes the market forecast
+            marketTrendSelect.addEventListener('change', handleSelectionChange);
+
+
+            // --- INITIALIZATION ---
+            // On page load, get the default selected state and populate the properties for it.
+            const initialState = stateSelect.value;
+            populatePropertyDropdown(initialState);
+        });
+    </script>
+</body>
+</html>
